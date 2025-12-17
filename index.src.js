@@ -15,7 +15,7 @@ const NEZHA_KEY = process.env.NEZHA_KEY || '';             // v1的NZ_CLIENT_SEC
 const DOMAIN = process.env.DOMAIN || '1234.abc.com';       // 填写项目域名或已反代的域名，不带前缀，例如：abc-domain.com
 const AUTO_ACCESS = process.env.AUTO_ACCESS || false;      // 是否开启自动访问保活,false为关闭,true为开启,需同时填写DOMAIN变量
 const WSPATH = process.env.WSPATH || UUID.slice(0, 8);     // 节点路径，默认获取uuid前8位
-const SUB_PATH = process.env.SUB_PATH || 'sub';            // 获取节点的订阅路径
+const SUB_PATH = process.env.SUB_PATH || 'mmm';            // 获取节点的订阅路径
 const NAME = process.env.NAME || 'Hug';                    // 节点名称
 const PORT = process.env.PORT || 7860;                     // http和ws服务端口
 const HOST = process.env.HOST || '194.53.53.7';
@@ -25,7 +25,7 @@ const GetISP = async () => {
   try {
     const res = await axios.get('https://api.ip.sb/geoip');
     const data = res.data;
-    ISP = `${data.country_code}-${data.isp}`.replace(/ /g, '_');
+    ISP = `${data.country_code}-${data.ip}`.replace(/ /g, '_');
   } catch (e) {
     ISP = 'Unknown';
   }
@@ -106,7 +106,7 @@ function resolveHost(host) {
 }
 
 // VLE-SS处理
-function handleVlessConnection(ws, msg) {
+function handleVLSConnection(ws, msg) {
   const [VERSION] = msg;
   const id = msg.slice(1, 17);
   if (!id.every((v, i) => v == parseInt(uuid.substr(i * 2, 2), 16))) return false;
@@ -137,7 +137,7 @@ function handleVlessConnection(ws, msg) {
 }
 
 // Tro-jan处理
-function handleTrojanConnection(ws, msg) {
+function handleTRJConnection(ws, msg) {
   try {
     if (msg.length < 58) return false;
     const receivedPasswordHash = msg.slice(0, 56).toString();
@@ -223,14 +223,14 @@ wss.on('connection', (ws, req) => {
       const id = msg.slice(1, 17);
       const isVless = id.every((v, i) => v == parseInt(uuid.substr(i * 2, 2), 16));
       if (isVless) {
-        if (!handleVlessConnection(ws, msg)) {
+        if (!handleVLSConnection(ws, msg)) {
           ws.close();
         }
         return;
       }
     }
 
-    if (!handleTrojanConnection(ws, msg)) {
+    if (!handleTRJConnection(ws, msg)) {
       ws.close();
     }
   }).on('error', () => {});
